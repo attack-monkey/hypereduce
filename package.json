@@ -1,0 +1,34 @@
+{
+  "name": "hypereduce",
+  "version": "1.0.0",
+  "description": "State management without all the boilerplate",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/attack-monkey/hypereduce.git"
+  },
+  "keywords": [
+    "redux",
+    "state",
+    "state",
+    "management",
+    "reducer"
+  ],
+  "author": "attack-monkey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/attack-monkey/hypereduce/issues"
+  },
+  "homepage": "https://github.com/attack-monkey/hypereduce#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "ts-node": "^8.5.4",
+    "tsc": "^1.20150623.0",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.2"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "outDir": "./lib",
+    "declaration": true,
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["es7", "dom"],
+    "moduleResolution": "node",
+    "strictNullChecks": true
+  },
+  "include": ["src"],
+  "exclude": [
+    "dist",
+    ".cache",
+    "node_modules"
+  ]
+}
