@@ -14,7 +14,7 @@ export const SET = <T, E>(collectionState: Collection<T, E>, action: Action): Co
         ? ({
             collection: collectionState.collection,
             byId: { ...collectionState.byId, [setAction.id]: setAction.payload },
-            allIds: collectionState.allIds
+            allIds: [ ...collectionState.allIds, setAction.id]
           })
         : collectionState
     )

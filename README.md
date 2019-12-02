@@ -296,3 +296,74 @@ const Link = ({ link, children }) =>
 
 ```
 
+## Reusability
+
+hypeReduce is big on reusability.
+By thinking of various parts of state as data-structures, we can often use the same functions.
+We provide a bunch of functions out-of-the-box to get you started.
+
+```javascript
+
+field1: {
+  text: {
+    // REPLACE
+    REPLACE: REPLACE('field1')
+  }
+}
+// Replace text at field1
+dispatch({
+  type: 'REPLACE',
+  location: 'field1',
+  payload: 'new text'
+})
+
+```
+
+How about a collection of cats...
+
+```javascript
+
+const state = 
+  cats: {
+    byId: {
+      cat1: {
+        name: 'kitty'
+      }
+    },
+    allIds: [cat1]
+  }
+
+const reducer = {
+  cats: {
+    SET, UPDATE, DELETE
+  }
+}
+
+// SET can be used to add new cats, or replace existing cats
+dispatch({
+  type: 'SET',
+  collection: 'cats',
+  id: 'cat2',
+  payload: { name: 'garfield' }
+})
+
+// UPDATE allows you to specify a particular key of the collection item to update
+
+dispatch({
+  type: 'UPDATE',
+  collection: 'cats',
+  id: 'cat2',
+  key: 'name',
+  payload: 'garfield'
+})
+
+// DELETE allows you to well ... delete items
+
+dispatch({
+  type: 'DELETE',
+  collection: 'cats',
+  id: 'cat2'
+})
+
+```
+

@@ -11,7 +11,6 @@ import {
 import { REPLACE as REPLACEHR } from './reducers/any-reducers/replace.red'
 
 import { DELETE as DELETEHR} from './reducers/collection-reducers/delete/delete.red'
-import { INSERT as INSERTHR} from './reducers/collection-reducers/insert/insert.red'
 import { SET as SETHR} from './reducers/collection-reducers/set/set.red'
 import { UPDATE as UPDATEHR} from './reducers/collection-reducers/update/update.red'
 
@@ -29,7 +28,6 @@ export const hypeReduceCore = hypeReduceCoreHR
 export const REPLACE = REPLACEHR
 
 // collection action-functions
-export const INSERT = INSERTHR
 export const DELETE = DELETEHR
 export const SET = SETHR
 export const UPDATE = UPDATEHR
