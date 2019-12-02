@@ -1,4 +1,4 @@
-# hypereduce
+# hypeReduce
 State management without the boilerplate
 
 ------------------------------------------------------------
@@ -12,7 +12,7 @@ Our application state looks like
 
 ```javaScript
 
-const state = {
+const initialState = {
   view: {
     ui: {
       field1: {
@@ -40,10 +40,10 @@ const reducer = {
   }
 }
 
-const CHANGE_TEXT = (textState, action) =>
+const CHANGE_TEXT = (state, action) =>
   action.payload || textState
 
-hypeReduce(state, reducer)
+hypeReduce(initialState, reducer)
 
 ```
 
@@ -58,7 +58,7 @@ dispatch({
 
 ```
 
-whaalaa...
+boom 💥
 
 
 ```javaScript
@@ -77,7 +77,7 @@ whaalaa...
 
 ```
 
-hypeReduce follows the shape of your state.  
+**hypeReduce follows the shape of your state.**   
 When you want a state node to respond to actions, just list them under the node.
 
 ```
@@ -93,6 +93,7 @@ field1: {
 ```
 
 The corresponding action-function gets triggered when action.type is the same as the function name.
+The state of the given node + the action is passed into the action-function.
 
 Need to respond to all actions at a given node? - use $
 
@@ -123,6 +124,29 @@ field1: {
 }
 
 ```
+We can listen for changes at a given node with the 'connect annotation' in the reducer + connect function in our app.
+We call these **Reactive Entrypoints**.
+
+```javascript
+
+const reducer = {
+  view: {
+    ui: {
+      field1: {
+        text: {
+          connect: 'field1Text',
+          CHANGE_TEXT
+        }
+      }
+    }
+  }
+}
+
+connect('field1Text', emittedValue => {
+  console.log(emittedValue)
+})
+
+```
 
 Using with React ? We hope so...  
 Take advantage of Reactive Entry Points
@@ -134,7 +158,7 @@ First add a 'connect' annotation at a given node
 field1: {
   text: {
     connect: 'field1Text',
-    REPLACE: REPLACE('field1')
+    CHANGE_TEXT
   }
 }
 
@@ -158,8 +182,7 @@ const Text = () => {
       <h1>{ state }</h1>
       <button onClick={ ev => dispatch(
         {
-          type: 'REPLACE',
-          location: 'field1',
+          type: 'CHANGE_TEXT',
           payload: 'New text'
         }
       )}>push</button>
@@ -192,7 +215,7 @@ ReactDOM.render(
 
 ```
 
-urlState
+## urlState
 
 The state of the url is not forgotten in hypeReduce.
 
