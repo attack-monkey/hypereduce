@@ -1,6 +1,14 @@
 # hypeReduce
 State management without the boilerplate
 
+```
+npm i hypereduce
+```
+
+```
+import { hypeReduce } from 'hypereduce'
+```
+
 ------------------------------------------------------------
 
 We believe that managing application state should be simple.
@@ -77,7 +85,8 @@ boom 💥
 
 ```
 
-**hypeReduce follows the shape of your state.**   
+**hypeReduce follows the shape of your state.**
+
 When you want a state node to respond to actions, just list them under the node.
 
 ```
@@ -142,6 +151,10 @@ const reducer = {
   }
 }
 
+// ... somewhere else in your app
+
+import { connect } from 'hypereduce'
+
 connect('field1Text', emittedValue => {
   console.log(emittedValue)
 })
@@ -167,6 +180,8 @@ field1: {
 Then in the corresponding component, use connect to listen for actions on that node
 
 ```jsx
+
+import { connect, getStore, dispatch } from 'hypereduce'
 
 const Text = () => {
   // useState is a React hook that allows you to update a component when a given piece of state changes.
@@ -296,6 +311,10 @@ const Link = ({ link, children }) =>
 
 ```
 
+## Routing
+
+TBA
+
 ## Reusability
 
 hypeReduce is big on reusability.
@@ -366,4 +385,3 @@ dispatch({
 })
 
 ```
-
