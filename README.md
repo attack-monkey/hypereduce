@@ -11,8 +11,16 @@ import { hypeReduce } from 'hypereduce'
 
 ------------------------------------------------------------
 
-We believe that managing application state should be simple.
+We believe that managing application state should be simple - yet powerful.
 That's why we built hypeReduce.
+
+hypeReduce takes the initial state of an application along with a reducer for managing state changes.
+
+```javascript
+
+hypeReduce(initialState, reducer)
+
+```
 
 consider:
 
@@ -32,7 +40,8 @@ const initialState = {
 
 ```
 
-We now want to make 'hello world' updatable.
+To make 'hello world' updatable, we create a reducer which follows the initial state pretty closely.  
+The difference being that 'hello world' has been replaced with CHANGE_TEXT.
 
 ```javaScript
 
@@ -48,14 +57,23 @@ const reducer = {
   }
 }
 
-const CHANGE_TEXT = (state, action) =>
-  action.payload || textState
-
-hypeReduce(initialState, reducer)
-
 ```
 
-Now whenever we dispatch a CHANGE_TEXT action, the text will be updated.
+CHANGE_TEXT is a reference to a thing called an action-function.  
+Action-functions are functions that handle actions.  
+They take the previous state at the given node - in this case 'hello world' along with an action-object (aka an action).
+
+For example, here's our CHANGE_TEXT action function.
+
+```javascript
+const CHANGE_TEXT = (state, action) =>
+  action.payload || state
+```
+
+You can see that if the action parameter has a field called 'payload' then action.payload will be returned.  
+Otherwise the original state is returned instead.
+
+Now when we dispatch a CHANGE_TEXT action...
 
 ```javaScript
 
@@ -65,6 +83,11 @@ dispatch({
 })
 
 ```
+
+hypeReduce matches the action.type of 'CHANGE_TEXT' to the node in the reducer that references CHANGE_TEXT.  
+Since there is a match, the state at the given node - 'hello world' is passed into the action-function's state parameter.  
+The action itself is passed into the action-function's action parameter.  
+The response from the action-function becomes the new state at the given node.
 
 boom 💥
 
@@ -101,8 +124,11 @@ field1: {
 
 ```
 
-The corresponding action-function gets triggered when action.type is the same as the function name.
-The state of the given node + the action is passed into the action-function.
+The corresponding action-function gets triggered when action.type is the same as the action-function's name.
+
+**Once the match has been made - the state change is complete**
+
+## $ Wildcards
 
 Need to respond to all actions at a given node? - use $
 
@@ -116,6 +142,10 @@ field1: {
 ...
 
 ```
+
+Now any actions that make their way to the node with a $ will automatically trigger the corresponding action-function.
+
+## Passdowns
 
 When an action-function isn't triggered at a higher node, use _ to pass the action down into child nodes.
 
@@ -133,7 +163,10 @@ field1: {
 }
 
 ```
-We can listen for changes at a given node with the 'connect annotation' in the reducer + connect function in our app.
+
+## Reactive entry-points
+
+We can listen for changes at a given node with the 'connect annotation' in the reducer, along with the `connect` function in our app.
 We call these **Reactive Entrypoints**.
 
 ```javascript
@@ -160,6 +193,22 @@ connect('field1Text', emittedValue => {
 })
 
 ```
+
+Now when an action is triggered on the above 'text' node, this will emit the new state to the `connect` listener.
+
+Note - unlike a subscribe hook in other frameworks, `connect` can only be registered once on a given node.  
+This means that you don't have to manage sunscribes and unsubscribes, which can lead to memory leaks in an application.  
+The trick to bypassing this limitation is to match the application state to the components of the application.  
+In other words, the application state matches the components and therefore should only have one connection.
+
+If two (or more) components reference the same piece of data, then the best practice way to do this is to  
+represent the data at two (or more) nodes in the reducer, and reference the same Action-functions.  
+When you dispatch an action, all corresponding nodes will update accordingly.
+
+The way that this works is that when a node in the reducer has multiple child nodes, a dispatched action will  
+flow into each child node (unless it makes a match to an action-function before).
+
+## React
 
 Using with React ? We hope so...  
 Take advantage of Reactive Entry Points
@@ -385,3 +434,11 @@ dispatch({
 })
 
 ```
+
+## Dispatching multiple actions
+
+TBA
+
+## Async actions & Action chaining
+
+## Dynamically modifying the Reducer and Action-functions

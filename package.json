@@ -4,7 +4,8 @@
   "description": "State management without all the boilerplate",
   "main": "index.js",
   "scripts": {
-    "test": "test",
+    "start": "node test.js",
+    "test": "node test.js",
     "build": "tsc"
   },
   "repository": {
