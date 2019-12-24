@@ -1,6 +1,6 @@
 import { Action } from './fns/hype-reduce.fn';
 export declare const connect: (key: string, fn: any) => void;
-export declare const dispatch: (action: Action) => void;
+export declare const dispatch: (...actions: Action[]) => void;
 export declare const getStore: () => any;
 export declare const goto: (path: any) => void;
 export declare const hypeReduce: (init: any, reduceObject: any) => void;

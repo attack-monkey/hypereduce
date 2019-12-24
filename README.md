@@ -208,6 +208,9 @@ When you dispatch an action, all corresponding nodes will update accordingly.
 The way that this works is that when a node in the reducer has multiple child nodes, a dispatched action will  
 flow into each child node (unless it makes a match to an action-function before).
 
+Rather than having the same large blobs of data at multiple locations, you can have a single-source-of-truth node, and several slave nodes.
+To see how this works - see Master/Slave Data
+
 ## React
 
 Using with React ? We hope so...  
@@ -437,8 +440,26 @@ dispatch({
 
 ## Dispatching multiple actions
 
-TBA
+Multiple actions can be dispatched at once. 
+This will trigger all changes in state, followed by any connection triggers attached.
+
+```javascript
+
+dispatch(
+  { type: 'ACTION1' },
+  { type: 'ACTION2' }
+)
+
+```
 
 ## Async actions & Action chaining
 
+TBA
+
+## Master / Slave Data
+
+TBA
+
 ## Dynamically modifying the Reducer and Action-functions
+
+TBA

@@ -11,9 +11,11 @@ export const getStore = () => store
 
 export const connect = (key: string, fn) => { subs[key] = fn }
 
-export const dispatch = (action: Action) => {
-  store =
-    hypeReduceCore(store, action)(reducer)
+export const dispatch = (...actions: Action[]) => {
+  actions.forEach(action => {
+    store =
+        hypeReduceCore(store, action)(reducer)
+  })
 }
 
 export const goto = path => {

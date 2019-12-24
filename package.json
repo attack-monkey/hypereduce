@@ -4,7 +4,6 @@
   "description": "State management without all the boilerplate",
   "main": "index.js",
   "scripts": {
-    "start": "node test.js",
     "test": "node test.js",
     "build": "tsc"
   },
@@ -27,6 +26,7 @@
   "homepage": "https://github.com/attack-monkey/hypereduce#readme",
   "dependencies": {},
   "devDependencies": {
+    "object-hash": "^2.0.1",
     "ts-node": "^8.5.4",
     "tsc": "^1.20150623.0",
     "tslint": "^5.20.1",
