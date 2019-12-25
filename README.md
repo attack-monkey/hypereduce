@@ -1,5 +1,5 @@
 # hypeReduce
-State management without the boilerplate
+Simple State Management
 
 ```
 npm i hypereduce
@@ -15,6 +15,11 @@ We believe that managing application state should be simple - yet powerful.
 That's why we built hypeReduce.
 
 hypeReduce takes the initial state of an application along with a reducer for managing state changes.
+
+Unlike reducers in Redux, the hypeReduce reducer is just an object - making state management easier to  
+visualise and manage.
+
+Under the hood though, hypeReduce is built on the same reducer based structure of Redux.
 
 ```javascript
 
@@ -108,9 +113,24 @@ boom 💥
 
 ```
 
-**hypeReduce follows the shape of your state.**
+## How Reducers work
 
-When you want a state node to respond to actions, just list them under the node.
+When an action is dispatched it enters the top of the reducer. 
+The root-reducer is likely to have a number of child-nodes aka child-reducers.
+
+The action is passed into each of these child-reducers.
+
+If on a given node, their is an action-function reference that matches the action.type then that action-function fires.
+Once the action function fires, the new state is returned for that given node.
+
+If an action-function isn't triggered and the child-reducer has more child-reducers, 
+then the action is passed into each of those.
+
+The process continues until each reducer that gets passed an action returns their new state.
+
+## Responding to different types of Actions
+
+Just list the action functions under the given node
 
 ```
 ...
@@ -124,13 +144,9 @@ field1: {
 
 ```
 
-The corresponding action-function gets triggered when action.type is the same as the action-function's name.
-
-**Once the match has been made - the state change is complete**
-
 ## $ Wildcards
 
-Need to respond to all actions at a given node? - use $
+Need to respond to any action at a given node? - use $
 
 ```javascript
 ...
@@ -196,20 +212,30 @@ connect('field1Text', emittedValue => {
 
 Now when an action is triggered on the above 'text' node, this will emit the new state to the `connect` listener.
 
-Note - unlike a subscribe hook in other frameworks, `connect` can only be registered once on a given node.  
-This means that you don't have to manage sunscribes and unsubscribes, which can lead to memory leaks in an application.  
-The trick to bypassing this limitation is to match the application state to the components of the application.  
-In other words, the application state matches the components and therefore should only have one connection.
+Unlike 'subscribe' in other frameworks, `connect` can only be registered once on a given node. 
+This is to reduce the panalty that exist in other frameworks when forgetting to unsubscribe from a subscribe.
+In saying that we provide an `disconnect` function still for unregistering a connect.
 
-If two (or more) components reference the same piece of data, then the best practice way to do this is to  
-represent the data at two (or more) nodes in the reducer, and reference the same Action-functions.  
-When you dispatch an action, all corresponding nodes will update accordingly.
+```javascript
+disconnect('field1Text')
+```
 
-The way that this works is that when a node in the reducer has multiple child nodes, a dispatched action will  
-flow into each child node (unless it makes a match to an action-function before).
+## State-Shape & Component-Shape
 
-Rather than having the same large blobs of data at multiple locations, you can have a single-source-of-truth node, and several slave nodes.
-To see how this works - see Master/Slave Data
+The trick to bypassing this 'single connection' limitation is to match the state-shape to the component-shape of the application. 
+In other words, the application state should match the components and therefore a state-node should only need to connect to
+a single point in a component structure.
+
+If two (or more) components reference the same piece of data, then the best practice way to do hanlde this is to either:
+
+1. Represent the data at multiple nodes in the reducer (matching the component-shape).
+By having the nodes that represent the same data respond to the same action-functions, their state will stay in sync.
+
+2. Use a single-source-of-truth node that holds the actual data. This node has a `connect` annotation that emits the new state.
+The listener then dispatches an action that 'satellite nodes' respond to. Sattlelite nodes don't hold the actual data, but instead 
+a hash of the data OR a version number (an integer that updates on each change). In this way when the single-source-of-truth 
+updates, this emits the new state to the listener that dispatches an action, updating the satellite nodes. 
+Components can connect to these satellites, and listen for the hash / version changes, and then just get the new source of truth. 
 
 ## React
 
@@ -239,11 +265,18 @@ const Text = () => {
   // useState is a React hook that allows you to update a component when a given piece of state changes.
   // getStore is a hypeReduce util that gets you the current hypeReduce stored state
   const [state, set] = useState(getStore().field1.text)
-  // connect allows you to listen for actions on the 'field1Text' node
-  // When this fires we call `set` which updates the state of this component
-  connect('field1Text', emittedValue =>
-    set(emittedValue)
-  )
+  // useEffect is another React hook, which fires on each render.
+  // This calls connect which listens for actions on the 'field1Text' node
+  // When this fires we call `set` which updates the state of this component.
+  // The returned function inside `useEffect` calls `disconnect` which unregisters the 
+  // component from listening for actions on the 'field1Text' node.
+  // This function is called before each render AND when the component dismounts.
+  useEffect(() => {
+    connect('field1Text', emittedValue =>
+      set(emittedValue)
+    )
+    return () => disconnect('field1Text')
+  }
   return (
     <div>
       <h1>{ state }</h1>
@@ -440,26 +473,49 @@ dispatch({
 
 ## Dispatching multiple actions
 
-Multiple actions can be dispatched at once. 
-This will trigger all changes in state, followed by any connection triggers attached.
+Multiple Actions can be dispatched at once...
 
 ```javascript
 
 dispatch(
   { type: 'ACTION1' },
-  { type: 'ACTION2' }
+  { type: 'ACTION2'}
 )
 
 ```
 
-## Async actions & Action chaining
+All the actions will run in order before any state changes to `connect` listeners. 
 
-TBA
+## Asynchronous Actions
 
-## Master / Slave Data
+In hypeReduce - there should be NO asynchronous actions.
+Action-functions should be pure functions that return a response synchronously.
 
-TBA
+Asynchronous operations should be handled outside of hypeReduce.
+
+A common way to do this is to call a sequence that dispatches actions at intervals in an async operation...
+
+```javascript
+
+const sequence = () => {
+  dispatch({ type: 'START_ASYNC_OP' })
+  setTimeout(() => dispatch({ type: 'MIDDLE_ASYNC_OP' }), 1000)
+  setTimeout(() => dispatch({ type: 'FINISH_ASYNC_OP' }), 2000)
+}
+
+```
+
+It is also common to use `connect` to listen to a state change, that then triggers a dispatch...
+
+```javascript
+
+connect(
+  'some-node',
+  newValue => {
+    dispatch({ type: 'UPDATE_STATUS', status: 'done', value: newValue })
+  }
+)
+
+```
 
 ## Dynamically modifying the Reducer and Action-functions
-
-TBA

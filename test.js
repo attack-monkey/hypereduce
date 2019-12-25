@@ -305,7 +305,7 @@ on('test5', () => {
 //-----
 
 on('test6', () => {
-  console.log('TEST 6 - Multiple actions')
+  console.log('TEST 6 - Async actions ** DON\'t use THEM **')
   console.log('=========================================')
 
   initialState = {

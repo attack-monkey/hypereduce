@@ -4,6 +4,7 @@ export interface Action {
 }
 export declare const getStore: () => any;
 export declare const connect: (key: string, fn: any) => void;
+export declare const disconnect: (key: string) => boolean;
 export declare const dispatch: (...actions: Action[]) => void;
 export declare const goto: (path: any) => void;
 export declare const hypeReduce: (init: any, reduceObject: any) => void;

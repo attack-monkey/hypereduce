@@ -11,6 +11,8 @@ export const getStore = () => store
 
 export const connect = (key: string, fn) => { subs[key] = fn }
 
+export const disconnect = (key: string) => delete subs[key]
+
 export const dispatch = (...actions: Action[]) => {
   actions.forEach(action => {
     store =
