@@ -3,7 +3,11 @@ const REPLACE = require('./lib/index').REPLACE
 const dispatch = require('./lib/index').dispatch
 const getStore = require('./lib/index').getStore
 const connect = require('./lib/index').connect
+const disconnect = require('./lib/index').disconnect
+const getReducer = require('./lib/index').getReducer
 const hash = require('object-hash')
+
+const CONSTANT = state => state
 
 const tick = (fn) => setTimeout(fn, 0)
 const testSubs = {}
@@ -298,45 +302,114 @@ on('test5', () => {
     payload: 'Hola'
   })
 
-  tick(() => next('test6'))
+  tick(() => next('test7'))
 
 })
 
-//-----
+// --------
 
-on('test6', () => {
-  console.log('TEST 6 - Async actions ** DON\'t use THEM **')
+on('test7', () => {
+  console.log('TEST 7 - DISCONNECT')
   console.log('=========================================')
 
   initialState = {
     greeting: 'hello'
   }
 
-  let ACTION1 = (state, action) => 'fetched'
-
-  let ACTION1_ASYNC = (state, action) => {
-    setTimeout(() => dispatch({ type: 'ACTION1' }), 200 )
-    return 'fetching'
-  }
-
   reducer = {
     greeting: {
-      connect: 'asyncGreeting',
-      ACTION1_ASYNC,
-      ACTION1
+      connect:'greeting-test7',
+      REPLACE: REPLACE('greeting')
     }
   }
 
   hypeReduce(initialState, reducer)
 
-  console.log('Attempting async state changes...')
-
-  connect('greetingTest6', newValue => {
-    console.log(JSON.stringify(newValue, null, 2))
+  connect('greeting-test7', newValue => {
+    console.log(newValue)
+    disconnect('greeting-test7')
+    console.log('This following dispatch should not fire the connect function as it has been disconnected...')
+    dispatch({
+      type: 'REPLACE',
+      location: 'greeting',
+      payload: 'Yo sup again'
+    })
   })
+
+  console.log('Attempting state change...')
 
   dispatch({
-    type: 'ACTION1_ASYNC'
+    type: 'REPLACE',
+    location: 'greeting',
+    payload: 'Yo sup'
   })
+
+  tick(() => next('test8'))
+})
+
+// --------
+
+on('test8', () => {
+  console.log('TEST 8 - ROUTING')
+  console.log('=========================================')
+
+  initialState = {
+    view: { view1Widget: 'flah' }
+  }
+
+  const view1Reducer = () => ({
+    view1Widget: {
+      CONSTANT
+    }
+  })
+
+  const view2Reducer = () => ({
+    view2Widget: {
+      REPLACE: REPLACE('view2Widget')
+    }
+  })
+
+  const VIEW_CHANGE = (state, action) => {
+    const view1 = { view1Widget: 'flah' }
+    const view2 = { view2Widget: 'gah' }
+    return action.view === 'view1'
+      ? view1
+      : action.view === 'view2'
+        ? view2
+        : view1
+  }
+
+  reducer = {
+    view: {
+      VIEW_CHANGE,
+      _: view1Reducer()
+    }
+  }
+
+  hypeReduce(initialState, reducer)
+
+  const loadView2 = () => {
+    dispatch({ type: 'VIEW_CHANGE', view: 'view2' })
+    const newReducer = {
+      ...getReducer(),
+      view: {
+        VIEW_CHANGE,
+        _: view2Reducer()
+      }
+    }
+    hypeReduce(getStore(), newReducer)
+  }
+
+  loadView2()
+
+  console.log(getStore())
+
+  dispatch({
+    type: 'REPLACE',
+    location: 'view2Widget',
+    payload: 'mwah'
+  })
+
+  console.log(getStore())
 
 })

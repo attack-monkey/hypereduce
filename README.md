@@ -396,9 +396,95 @@ const Link = ({ link, children }) =>
 
 ```
 
-## Routing
+## Reducer Routing
 
-TBA
+Reducer Routing in hypeReduce means to conditionally change both a section of state AND the reducer to manage that new state.
+This most often occurs when there is a change in view, lets say from view1 to view2.
+
+To manage a state change, we need to dispatch an action to a corresponding action-function - nothing new here.
+Additionally to this we need to reconstruct the reducer and re-run `hypeReduce`.
+This will readjust hypeReduce to manage the new state.
+
+```javascript
+
+// create some action-functions that we'll use...
+
+// This one changes the view from one state to another
+const VIEW_CHANGE = (state, action) => {
+  const view1 = { view1Widget: 'flah' }
+  const view2 = { view2Widget: 'gah' }
+  return action.view === 'view1'
+    ? view1
+    : action.view === 'view2'
+      ? view2
+      : view1
+}
+
+// This just returns the current state for a given node
+const CONSTANT = state => state
+
+// create the initial state
+initialState = {
+  view: { view1Widget: 'flah' }
+}
+
+// and the reducer segment for the initial view
+const view1Reducer = () => ({
+  view1Widget: {
+    CONSTANT
+  }
+})
+
+// construct the whole reducer
+const reducer = {
+  view: {
+    VIEW_CHANGE,
+    _: view1Reducer()
+  }
+}
+
+// Set up hypeReduce based on the initial state and reducer...
+hypeReduce(initialState, reducer)
+
+// Now, create a function to handle loading a new view...
+const loadView2 = () => {
+  // Here we are dispatching the VIEW_CHANGE action to change the state
+  dispatch({ type: 'VIEW_CHANGE', view: 'view2' })
+
+  // Now we need to update the reducer to manage the new state...
+  // Heres the segment for the new view...
+  const view2Reducer = () => ({
+    view2Widget: {
+      REPLACE: REPLACE('view2Widget')
+    }
+  })
+  // And now we need to reconstruct the full reducer
+  // Note that we use getReducer() to get the current reducer object loaded into hypeReduce
+  const newReducer = {
+    ...getReducer(),
+    view: {
+      VIEW_CHANGE,
+      _: view2Reducer()
+    }
+  }
+  // Now we need to re-run hypeReduce to load the new reducer
+  hypeReduce(getStore(), newReducer)
+}
+
+// Now to change the view we can just call ...
+loadView2()
+
+// If we log the state - we'll see that it's changed to view2
+console.log(getStore())
+
+// And if we dispatch an action that only exists in view2, it also works
+dispatch({
+  type: 'REPLACE',
+  location: 'view2Widget',
+  payload: 'mwah'
+})
+
+```
 
 ## Reusability
 
@@ -517,5 +603,3 @@ connect(
 )
 
 ```
-
-## Dynamically modifying the Reducer and Action-functions

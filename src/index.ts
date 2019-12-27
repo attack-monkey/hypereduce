@@ -1,7 +1,9 @@
 import {
   Action,
   connect as connectHR,
+  disconnect as disconnectHR,
   dispatch as dispatchHR,
+  getReducer as getReducerHR,
   getStore as getStoreHR,
   goto as gotoHR,
   hypeReduce as hypeReduceHR,
@@ -16,10 +18,12 @@ import { UPDATE as UPDATEHR} from './reducers/collection-reducers/update/update.
 
 // core library
 export const connect = connectHR
+export const disconnect = disconnectHR
 export const dispatch = dispatchHR
 export const getStore = getStoreHR
 export const goto = gotoHR
 export const hypeReduce = hypeReduceHR
+export const getReducer = getReducerHR
 export const hypeReduceCore = hypeReduceCoreHR
 
 // common action-function / reducers

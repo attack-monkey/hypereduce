@@ -1,9 +1,11 @@
 import { Action } from './fns/hype-reduce.fn';
 export declare const connect: (key: string, fn: any) => void;
+export declare const disconnect: (key: string) => void;
 export declare const dispatch: (...actions: Action[]) => void;
 export declare const getStore: () => any;
 export declare const goto: (path: any) => void;
 export declare const hypeReduce: (init: any, reduceObject: any) => void;
+export declare const getReducer: () => any;
 export declare const hypeReduceCore: <S, A extends Action>(state: S, action: A, pKey?: string | undefined) => (mirror: Record<string, any>) => any;
 export declare const REPLACE: (location: string, fallback?: any) => <S, A extends import("./reducers/models/action.model").Action>(state: S, action: A) => S;
 export declare const DELETE: <E>(collectionState: import("./reducers/collection-reducers/models/models").Collection<any, E>, action: import("./reducers/models/action.model").Action) => import("./reducers/collection-reducers/models/models").Collection<any, E>;
