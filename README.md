@@ -115,7 +115,7 @@ boom 💥
 
 ## How Reducers work
 
-When an action is dispatched it enters the top of the reducer. 
+When an action is dispatched it enters the top of the reducer.
 The root-reducer is likely to have a number of child-nodes aka child-reducers.
 
 The action is passed into each of these child-reducers.
@@ -123,7 +123,7 @@ The action is passed into each of these child-reducers.
 If on a given node, their is an action-function reference that matches the action.type then that action-function fires.
 Once the action function fires, the new state is returned for that given node.
 
-If an action-function isn't triggered and the child-reducer has more child-reducers, 
+If an action-function isn't triggered and that child-reducer has more child-reducers, 
 then the action is passed into each of those.
 
 The process continues until each reducer that gets passed an action returns their new state.
@@ -144,15 +144,29 @@ field1: {
 
 ```
 
-## $ Wildcards
-
-Need to respond to any action at a given node? - use $
+## Routing an Action-Function reference to a reusable Action Function
 
 ```javascript
 ...
 field1: {
   text: {
-    $: (textState, action) => doSomething()
+    REPLACE_FIELD1: REPLACE
+  }
+}
+...
+
+```
+
+
+## $ Wildcards
+
+Need to respond to any action at a given node? - use $ and pass into a Reusable Action Function
+
+```javascript
+...
+field1: {
+  text: {
+    $: MY_ACTION_FUNCTION
   }
 }
 ...
@@ -226,16 +240,11 @@ The trick to bypassing this 'single connection' limitation is to match the state
 In other words, the application state should match the components and therefore a state-node should only need to connect to
 a single point in a component structure.
 
-If two (or more) components reference the same piece of data, then the best practice way to do hanlde this is to either:
+If two (or more) components reference the same piece of data, then the best practice way to do hanlde this is to:
 
-1. Represent the data at multiple nodes in the reducer (matching the component-shape).
-By having the nodes that represent the same data respond to the same action-functions, their state will stay in sync.
-
-2. Use a single-source-of-truth node that holds the actual data. This node has a `connect` annotation that emits the new state.
-The listener then dispatches an action that 'satellite nodes' respond to. Sattlelite nodes don't hold the actual data, but instead 
-a hash of the data OR a version number (an integer that updates on each change). In this way when the single-source-of-truth 
-updates, this emits the new state to the listener that dispatches an action, updating the satellite nodes. 
-Components can connect to these satellites, and listen for the hash / version changes, and then just get the new source of truth. 
+Use a single-source-of-truth node that holds the actual data. Other 'Satellite' nodes don't hold the actual data, but instead 
+an id representing the data, that still respond to the same actions. By putting `connect` annotations on the satellite nodes, this lets
+different parts of the application know that the single-source-of-truth has changed.
 
 ## React
 
@@ -396,93 +405,102 @@ const Link = ({ link, children }) =>
 
 ```
 
-## Reducer Routing
+## Routing
 
-Reducer Routing in hypeReduce means to conditionally change both a section of state AND the reducer to manage that new state.
-This most often occurs when there is a change in view, lets say from view1 to view2.
+Routing in hypeReduce is straight forward.
 
-To manage a state change, we need to dispatch an action to a corresponding action-function - nothing new here.
-Additionally to this we need to reconstruct the reducer and re-run `hypeReduce`.
-This will readjust hypeReduce to manage the new state.
+Lets say we have two views set up, and an initial state...
 
 ```javascript
 
-// create some action-functions that we'll use...
+  const view1 = 'Hi Im view 1'
+  const view2 = 'Hi Im view 2'
 
-// This one changes the view from one state to another
-const VIEW_CHANGE = (state, action) => {
-  const view1 = { view1Widget: 'flah' }
-  const view2 = { view2Widget: 'gah' }
-  return action.view === 'view1'
-    ? view1
-    : action.view === 'view2'
-      ? view2
-      : view1
-}
-
-// This just returns the current state for a given node
-const CONSTANT = state => state
-
-// create the initial state
-initialState = {
-  view: { view1Widget: 'flah' }
-}
-
-// and the reducer segment for the initial view
-const view1Reducer = () => ({
-  view1Widget: {
-    CONSTANT
-  }
-})
-
-// construct the whole reducer
-const reducer = {
-  view: {
-    VIEW_CHANGE,
-    _: view1Reducer()
-  }
-}
-
-// Set up hypeReduce based on the initial state and reducer...
-hypeReduce(initialState, reducer)
-
-// Now, create a function to handle loading a new view...
-const loadView2 = () => {
-  // Here we are dispatching the VIEW_CHANGE action to change the state
-  dispatch({ type: 'VIEW_CHANGE', view: 'view2' })
-
-  // Now we need to update the reducer to manage the new state...
-  // Heres the segment for the new view...
-  const view2Reducer = () => ({
-    view2Widget: {
-      REPLACE: REPLACE('view2Widget')
-    }
-  })
-  // And now we need to reconstruct the full reducer
-  // Note that we use getReducer() to get the current reducer object loaded into hypeReduce
-  const newReducer = {
-    ...getReducer(),
+  initialState = {
     view: {
-      VIEW_CHANGE,
-      _: view2Reducer()
+      view1
     }
   }
-  // Now we need to re-run hypeReduce to load the new reducer
-  hypeReduce(getStore(), newReducer)
-}
 
-// Now to change the view we can just call ...
-loadView2()
+```
 
-// If we log the state - we'll see that it's changed to view2
-console.log(getStore())
+We can create a simple router action-function that just changes the state to the new view.
 
-// And if we dispatch an action that only exists in view2, it also works
-dispatch({
-  type: 'REPLACE',
-  location: 'view2Widget',
-  payload: 'mwah'
-})
+```javascript
+
+  const CHANGE_VIEW = (state, action) => {
+    return (
+      action.view === 'view2'
+        ? { view2 }
+        : { view1 }
+    )
+  }
+
+```
+
+The reducer contains the CHANGE_VIEW action-function that we created above.
+Then in the passdown, we cater for both view1 and view2 in the reducer.
+
+```javascript
+
+  reducer = {
+    view: {
+      CHANGE_VIEW,
+      _: {
+        view1: {
+          ...
+        },
+        view2: {
+          ...
+        }
+      }
+    }
+  }
+
+```
+
+And to change views...
+
+```javascript
+
+dispatch({ type: 'CHANGE_VIEW', view: 'view2' })
+
+```
+
+If we wanted to based our routing on the ROUTE_CHANGE action we can modify the reducer to...
+
+```javascript
+
+  reducer = {
+    view: {
+      ROUTE_CHANGE: CHANGE_VIEW,
+      _: {
+        view1: {
+          ...
+        },
+        view2: {
+          ...
+        }
+      }
+    }
+  }
+
+```
+
+Now it calls CHANGE_VIEW whenever the ROUTE_CHANGE action is dispatched.
+
+We can update our CHANGE_VIEW function to use the urlState that is passed through on ROUTE_CHANGE.
+For example here we use the second url segment to route on.
+
+```javascript
+
+  const CHANGE_VIEW = (state, action) => {
+    return (
+      action.segments[1] === 'view2'
+          ? { view2 }
+          : { view1 }
+    )
+  }
 
 ```
 
@@ -497,13 +515,12 @@ We provide a bunch of functions out-of-the-box to get you started.
 field1: {
   text: {
     // REPLACE
-    REPLACE: REPLACE('field1')
+    REPLACE_FIELD1: REPLACE
   }
 }
 // Replace text at field1
 dispatch({
-  type: 'REPLACE',
-  location: 'field1',
+  type: 'REPLACE_FIELD1',
   payload: 'new text'
 })
 
@@ -520,19 +537,20 @@ const state =
         name: 'kitty'
       }
     },
-    allIds: [cat1]
+    allIds: ['cat1']
   }
 
 const reducer = {
   cats: {
-    SET, UPDATE, DELETE
+    SET_CAT: SET,
+    UPDATE_CAT: UPDATE,
+    DELETE_CAT: DELETE
   }
 }
 
 // SET can be used to add new cats, or replace existing cats
 dispatch({
-  type: 'SET',
-  collection: 'cats',
+  type: 'SET_CAT',
   id: 'cat2',
   payload: { name: 'garfield' }
 })
@@ -540,8 +558,7 @@ dispatch({
 // UPDATE allows you to specify a particular key of the collection item to update
 
 dispatch({
-  type: 'UPDATE',
-  collection: 'cats',
+  type: 'UPDATE_CAT',
   id: 'cat2',
   key: 'name',
   payload: 'garfield'
@@ -550,8 +567,7 @@ dispatch({
 // DELETE allows you to well ... delete items
 
 dispatch({
-  type: 'DELETE',
-  collection: 'cats',
+  type: 'DELETE_CAT',
   id: 'cat2'
 })
 

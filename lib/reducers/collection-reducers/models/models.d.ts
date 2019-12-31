@@ -1,5 +1,4 @@
-export interface Collection<T, E> {
-    collection: E;
+export interface Collection<T> {
     byId: Record<string, T>;
     allIds: Array<keyof Record<string, T>>;
 }

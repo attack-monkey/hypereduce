@@ -116,9 +116,8 @@ const routeOnItem = (itemType: ItemType) =>
         ? hypeReduceCore(state, action, pKey)(mirror[key])
         : itemType === 'active-action'
           ? handleAction(action, state, key, mirror[key])
-          : isObject(state) && keys(state as any).length > 0
-            ? die(`${key} must either be bound to an action-function or be one of the following: ${keys(state as any).join(', ')}`)
-            : die(`${key} must be bound to an action-function`)
+          : // This section of state is missing - so actions cannot be applied. Return current state of undefined
+            undefined
 
 const handleAction =
   <A extends Action, S>(action: A, state: S, key: string | undefined, fn: any) => fn(state, action)

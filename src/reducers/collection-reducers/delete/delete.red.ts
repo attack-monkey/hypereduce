@@ -3,20 +3,15 @@ import { Action } from '../../models/action.model'
 import { Collection } from '../models/models'
 
 export type DeleteAction<E> = Action & {
-  type: 'DELETE'
-  collection: E
   id: string
 }
-export const DELETE = <E>(collectionState: Collection<any, E>, action: Action): Collection<any, E> =>
+export const DELETE = <E>(collectionState: Collection<any>, action: Action): Collection<any> =>
   apply(action as DeleteAction<E>, deleteAction =>
-      deleteAction.collection === collectionState.collection
-        ? apply(
-            collectionState.allIds.filter(id => id !== deleteAction.id), allIds =>
-              ({
-                collection: collectionState.collection,
-                byId: allIds.reduce((ac, id) => ({ ...ac, [id]: collectionState.byId[id] }), {}),
-                allIds
-              })
-          )
-        : collectionState
+    apply(
+      collectionState.allIds.filter(id => id !== deleteAction.id), allIds =>
+      ({
+        byId: allIds.reduce((ac, id) => ({ ...ac, [id]: collectionState.byId[id] }), {}),
+        allIds
+      })
     )
+  )

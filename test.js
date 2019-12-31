@@ -1,5 +1,8 @@
 const hypeReduce = require('./lib/index').hypeReduce
 const REPLACE = require('./lib/index').REPLACE
+const SET = require('./lib/index').SET
+const UPDATE = require('./lib/index').UPDATE
+const DELETE = require('./lib/index').DELETE
 const dispatch = require('./lib/index').dispatch
 const getStore = require('./lib/index').getStore
 const connect = require('./lib/index').connect
@@ -13,403 +16,123 @@ const tick = (fn) => setTimeout(fn, 0)
 const testSubs = {}
 const on = (key, fn) => testSubs[key] = fn
 const next = key => testSubs[key]()
+const start = key => tick(() => next(key))
 
 let initialState, reducer, syncFn, asyncFn
 
-console.log('TEST 1 - Basic State Change using REPLACE')
-console.log('=========================================')
+start('test1')
 
-initialState = {
-  greeting: 'hello'
-}
+on('test1', () => {
 
-reducer = {
-  greeting: {
-    REPLACE: REPLACE('greeting')
+  console.log('TEST 1 - Basic State Change using REPLACE')
+  console.log('=========================================')
+
+  initialState = {
+    greeting: 'hello',
+    anotherThing: 'I\'m a thing'
   }
-}
 
-hypeReduce(initialState, reducer)
-
-console.log('Attempting state change...')
-
-dispatch({
-  type: 'REPLACE',
-  location: 'greeting',
-  payload: 'Yo sup'
-})
-
-console.log(JSON.stringify(getStore(), null, 2))
-
-// -----
-
-console.log('\n\n\n')
-console.log('TEST 2 - State Changes in 2 nodes at once')
-console.log('=========================================')
-console.log('\n')
-console.log('This test shows that where a node has multiple children,')
-console.log('The dispatched action will flow into each child node.')
-console.log('This allows nodes that represent the same piece of data to be updated simultaneously.')
-console.log('\n')
-
-initialState = {
-  app: {
-    header: {
-      greeting: 'hello'
-    },
-    body: {
-      greeting: 'hello'
-    }
-  }
-}
-
-reducer = {
-  app: {
-    header: {
-      greeting: {
-        REPLACE: REPLACE('greeting')
-      }
-    },
-    body: {
-      greeting: {
-        REPLACE: REPLACE('greeting')
-      }
-    }
-  }
-}
-
-hypeReduce(initialState, reducer)
-
-console.log('Attempting state change...')
-
-dispatch({
-  type: 'REPLACE',
-  location: 'greeting',
-  payload: 'Yo sup'
-})
-
-console.log(JSON.stringify(getStore(), null, 2))
-
-// -----
-
-console.log('\n\n\n')
-console.log('TEST 3 - State Change in master node - triggers hash update in slave nodes')
-console.log('==========================================================================')
-console.log('\n')
-console.log('This test shows how you can have a single-source-of-truth node, ')
-console.log('along with slave nodes that recieve a hash of the data.')
-console.log('The changes in the hash are emitted and then dispatched to the slave nodes')
-console.log('\n')
-
-
-initialState = {
-  app: {
+  reducer = {
     greeting: {
-      tone: 'polite',
-      words: 'hello world'
-    }
-  },
-  view: {
-    header: {
-      greeting: 'init'
+      REPLACE_GREETING: REPLACE
     },
-    body: {
-      greeting: 'init'
+    anotherThing: {
+      REPLACE_THING: REPLACE
     }
   }
-}
 
-syncFn = (key, state, action) =>
-  action.location === key
-    ? REPLACE(key)(state, action)
-    : state
+  hypeReduce(initialState, reducer)
 
-asyncFn = () =>
-  connect('greetingHashGen', newValue =>
-    dispatch({
-      type: 'REPLACE',
-      location: 'greeting-hash',
-      payload: hash(newValue)
-    })
-  )
+  console.log('Attempting state change...')
 
-let REPLACE_AND_EMIT_HASH = (key) => (state, action) => {
-  asyncFn(key, state, action)
-  return syncFn(key, state, action)
-}
+  dispatch({
+    type: 'REPLACE_GREETING',
+    payload: 'Yo sup'
+  })
 
-reducer = {
-  app: {
-    greeting: {
-      connect: 'greetingHashGen',
-      REPLACE_AND_EMIT_HASH: REPLACE_AND_EMIT_HASH('greeting')
-    }
-  },
-  view: {
-    header: {
-      greeting: {
-        REPLACE: REPLACE('greeting-hash')
-      }
-    },
-    body: {
-      greeting: {
-        REPLACE: REPLACE('greeting-hash')
-      }
-    }
-  }
-}
-
-hypeReduce(initialState, reducer)
-
-console.log('Attempting state change...')
-
-dispatch({
-  type: 'REPLACE_AND_EMIT_HASH',
-  location: 'greeting',
-  payload: {
-    tone: 'cool',
-    words: 'yo sup'
-  }
-})
-
-// Console log after completing the current event queue
-setTimeout(() => {
   console.log(JSON.stringify(getStore(), null, 2))
-  next('test4')
-}, 0)
+
+  start('test2')
+})
 
 // -----
 
-on('test4', () => {
-  console.log('\n\n\n')
-  console.log('TEST 4 - State Change in master node - triggers increment update in slave nodes')
-  console.log('==========================================================================')
-  console.log('\n')
-  console.log('Similar to test above, however slave nodes just get an incremented version')
-  console.log('that keeps them in sync')
-  console.log('\n')
-  
-  
+on('test2', () => {
+
+  console.log('TEST 2 - Data node + Satellite nodes, using baked in action-functions')
+  console.log('=========================================')
+
   initialState = {
-    app: {
-      greeting: {
-        tone: 'polite',
-        words: 'hello world',
-        version: 1
-      }
+    data: {
+      cats: {
+        byId: {
+          cat1: {
+            name: 'kitty'
+          }
+        },
+        allIds: ['cat1']
+      },
+      selectedCat: 'cat1'
     },
     view: {
-      header: {
-        greeting: 1
-      },
-      body: {
-        greeting: 1
-      }
+      cats: true
     }
   }
-  
-  syncFn = (key, state, action) =>
-    action.location === key
-      ? REPLACE(key)(state, action)
-      : state
-  
-  asyncFn = () =>
-    connect('greetingVersion', newValue =>
-      dispatch({
-        type: 'REPLACE',
-        location: 'greeting-ref',
-        payload: newValue.version
-      })
-    )
-  
-  let REPLACE_AND_EMIT_VERSION = (key) => (state, action) => {
-    asyncFn(key, state, action)
-    return syncFn(key, state, action)
-  }
-  
+
   reducer = {
-    app: {
-      greeting: {
-        connect: 'greetingVersion',
-        REPLACE_AND_EMIT_VERSION: REPLACE_AND_EMIT_VERSION('greeting')
+    data: {
+      cats: {
+        SET_CAT: SET,
+        UPDATE_CAT: UPDATE,
+        DELETE_CAT: DELETE,
+      },
+      selectedCat: {
+        SELECT_CAT: REPLACE
       }
     },
     view: {
-      header: {
-        greeting: {
-          REPLACE: REPLACE('greeting-ref')
-        }
-      },
-      body: {
-        greeting: {
-          REPLACE: REPLACE('greeting-ref')
-        }
+      cats: {
+        connect: 'cat_sat1',
+        SET_CAT: CONSTANT,
+        UPDATE_CAT: CONSTANT,
+        DELETE_CAT: CONSTANT
       }
     }
   }
-  
+
   hypeReduce(initialState, reducer)
-  
-  console.log('Attempting state change...')
-  
-  dispatch({
-    type: 'REPLACE_AND_EMIT_VERSION',
-    location: 'greeting',
+
+  connect('cat_sat1', () => {
+    const selectedCatId = getStore().data.selectedCat
+    const selectedCat = getStore().data.cats.byId[selectedCatId]
+    console.log(selectedCat)
+  })
+
+  setTimeout(() => dispatch({
+    type: 'SET_CAT',
+    id: 'cat2',
     payload: {
-      tone: 'cool',
-      words: 'yo sup',
-      version: getStore().app.greeting.version + 1
+      name: 'garfield'
     }
-  })
-  
-  // Console log after completing the current event queue
+  }), 10)
+
+  setTimeout(() => dispatch({
+    type: 'UPDATE_CAT',
+    id: 'cat2',
+    key: 'name',
+    payload: 'odie'
+  }), 1000)
+
   setTimeout(() => {
-    console.log(JSON.stringify(getStore(), null, 2))
-    next('test5')
-  }, 0)
-})
-
-on('test5', () => {
-  console.log('TEST 5 - Multiple actions')
-  console.log('=========================================')
-
-  initialState = {
-    greeting: 'hello'
-  }
-
-  reducer = {
-    greeting: {
-      connect: 'greetingTest5',
-      REPLACE: REPLACE('greeting')
-    }
-  }
-
-  hypeReduce(initialState, reducer)
-
-  console.log('Attempting 2 state changes...')
-
-  connect('greetingTest5', newValue => {
-    console.log(JSON.stringify(newValue, null, 2))
-  })
-
-  dispatch({
-    type: 'REPLACE',
-    location: 'greeting',
-    payload: 'Yo sup'
-  }, {
-    type: 'REPLACE',
-    location: 'greeting',
-    payload: 'Hola'
-  })
-
-  tick(() => next('test7'))
-
-})
-
-// --------
-
-on('test7', () => {
-  console.log('TEST 7 - DISCONNECT')
-  console.log('=========================================')
-
-  initialState = {
-    greeting: 'hello'
-  }
-
-  reducer = {
-    greeting: {
-      connect:'greeting-test7',
-      REPLACE: REPLACE('greeting')
-    }
-  }
-
-  hypeReduce(initialState, reducer)
-
-  connect('greeting-test7', newValue => {
-    console.log(newValue)
-    disconnect('greeting-test7')
-    console.log('This following dispatch should not fire the connect function as it has been disconnected...')
-    dispatch({
-      type: 'REPLACE',
-      location: 'greeting',
-      payload: 'Yo sup again'
-    })
-  })
-
-  console.log('Attempting state change...')
-
-  dispatch({
-    type: 'REPLACE',
-    location: 'greeting',
-    payload: 'Yo sup'
-  })
-
-  tick(() => next('test8'))
-})
-
-// --------
-
-on('test8', () => {
-  console.log('TEST 8 - ROUTING')
-  console.log('=========================================')
-
-  initialState = {
-    view: { view1Widget: 'flah' }
-  }
-
-  const view1Reducer = () => ({
-    view1Widget: {
-      CONSTANT
-    }
-  })
-
-  const view2Reducer = () => ({
-    view2Widget: {
-      REPLACE: REPLACE('view2Widget')
-    }
-  })
-
-  const VIEW_CHANGE = (state, action) => {
-    const view1 = { view1Widget: 'flah' }
-    const view2 = { view2Widget: 'gah' }
-    return action.view === 'view1'
-      ? view1
-      : action.view === 'view2'
-        ? view2
-        : view1
-  }
-
-  reducer = {
-    view: {
-      VIEW_CHANGE,
-      _: view1Reducer()
-    }
-  }
-
-  hypeReduce(initialState, reducer)
-
-  const loadView2 = () => {
-    dispatch({ type: 'VIEW_CHANGE', view: 'view2' })
-    const newReducer = {
-      ...getReducer(),
-      view: {
-        VIEW_CHANGE,
-        _: view2Reducer()
+    dispatch(
+      {
+        type: 'DELETE_CAT',
+        id: 'cat1'
+      },
+      {
+        type: 'SELECT_CAT', payload: 'cat2'
       }
-    }
-    hypeReduce(getStore(), newReducer)
-  }
-
-  loadView2()
-
-  console.log(getStore())
-
-  dispatch({
-    type: 'REPLACE',
-    location: 'view2Widget',
-    payload: 'mwah'
-  })
-
-  console.log(getStore())
+    )
+  } , 2000)
 
 })
