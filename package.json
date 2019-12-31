@@ -1,8 +1,8 @@
 {
   "name": "hypereduce",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "State management without all the boilerplate",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "node test.js",
     "build": "tsc"
