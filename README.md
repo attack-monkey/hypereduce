@@ -302,6 +302,8 @@ const Text = () => {
 
 ```
 
+## PassiveConnect
+
 If you want to emit a node whenever state changes (and not only when an action is triggered on a node) then 
 just annotate the state node with 'passiveConnect' instead of 'connect'. As long as the action makes it to the node in question, then the state of that node will be emitted.
 
@@ -512,13 +514,18 @@ By thinking of various parts of state as data-structures, we can often use the s
 We provide a bunch of functions out-of-the-box to get you started.
 
 ```javascript
-
+...
 field1: {
   text: {
     // REPLACE
     REPLACE_FIELD1: REPLACE
   }
 }
+...
+```
+
+```javascript
+
 // Replace text at field1
 dispatch({
   type: 'REPLACE_FIELD1',
