@@ -240,10 +240,11 @@ The trick to bypassing this 'single connection' limitation is to match the state
 In other words, the application state should match the components and therefore a state-node should only need to connect to
 a single point in a component structure.
 
-If two (or more) components reference the same piece of data, then the best practice way to do hanlde this is to:
+If two (or more) components reference the same piece of data, then the best practice way to do handle this is to:
 
 Use a single-source-of-truth node that holds the actual data. Other 'Satellite' nodes don't hold the actual data, but instead 
-an id representing the data, that still respond to the same actions. By putting `connect` annotations on the satellite nodes, this lets
+just act as connectors. The important thing is that the node responds to the same actions. 
+By putting `connect` annotations on the satellite nodes, this lets
 different parts of the application know that the single-source-of-truth has changed.
 
 ## React
