@@ -363,7 +363,7 @@ The action looks like the following...
 ```javascript
 
 {
-  type: 'ROUTE_CHANGE,
+  type: 'ROUTE_CHANGE',
   segments: [
     '',
     'cats',
