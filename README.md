@@ -470,7 +470,7 @@ dispatch({ type: 'CHANGE_VIEW', view: 'view2' })
 
 ```
 
-If we wanted to based our routing on the ROUTE_CHANGE action we can modify the reducer to...
+If we wanted to base our routing on the ROUTE_CHANGE action we can modify the reducer to...
 
 ```javascript
 
