@@ -1,6 +1,6 @@
 {
   "name": "hypereduce",
-  "version": "1.0.3",
+  "version": "1.2.0",
   "description": "State management without all the boilerplate",
   "main": "lib/index.js",
   "scripts": {

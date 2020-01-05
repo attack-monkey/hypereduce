@@ -144,7 +144,7 @@ field1: {
 
 ```
 
-## Routing an Action-Function reference to a reusable Action Function
+## Routing an Action-Function reference to a different reusable Action Function
 
 ```javascript
 ...
@@ -506,6 +506,29 @@ For example here we use the second url segment to route on.
   }
 
 ```
+
+There is one extra thing that we need to do where we call hypeReduce at the root of our app...
+
+```javascript
+
+import { dispatch, getRoute, hypeReduce } from 'hypereduce'
+
+hypeReduce(initState, reducer)
+const route = getRoute()
+const segments = route.segments
+const queryString = route.queryString
+dispatch({ type: 'ROUTE_CHANGE', segments, queryString })
+
+ReactDOM.render(
+  FirstComponent(),
+  mount
+)
+
+```
+
+Before we render the react app, we first get the current route object.
+We then dispatch the ROUTE_CHANGE action.
+This ensures that our CHANGE_VIEW action-function fires and generates the correct view.
 
 ## Reusability
 

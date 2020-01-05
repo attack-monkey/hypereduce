@@ -10,3 +10,7 @@ export declare const dispatch: (...actions: Action[]) => void;
 export declare const goto: (path: any) => void;
 export declare const hypeReduce: (init: any, reduceObject: any) => void;
 export declare const hypeReduceCore: <S, A extends Action>(state: S, action: A, pKey?: string | undefined) => (mirror: Record<string, any>) => any;
+export declare const returnRouteObject: () => {
+    segments: string[];
+    queryString: {} | undefined;
+};

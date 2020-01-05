@@ -170,7 +170,7 @@ const extractQueryStringFromHash = () => (() => {
 })()
 const queryString = () => extractQueryStringFromSearch() || extractQueryStringFromHash()
 
-const returnRouteObject = () => {
+export const returnRouteObject = () => {
   const pathArrayStep1 = (() => { try { return window.location.pathname.split('/') } catch (e) { return [] }})()
   const lastKey = pathArrayStep1.length - 1
   // if last path array item is '' then remove it
