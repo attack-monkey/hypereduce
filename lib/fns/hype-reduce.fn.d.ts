@@ -3,6 +3,9 @@ export interface Action {
     [key: string]: any;
 }
 export declare const getStore: () => any;
+export declare const getConnectionsStore: () => {
+    [key: string]: any;
+};
 export declare const getReducer: () => any;
 export declare const connect: (key: string, fn: any) => void;
 export declare const disconnect: (key: string) => void;

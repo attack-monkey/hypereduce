@@ -4,10 +4,13 @@ import { keys } from './keys.fn'
 export interface Action { type: string, [key: string]: any }
 
 const subs = {}
+const connectionsStore: {[key: string]: any} = {}
 let store
 let reducer
 
 export const getStore = () => store
+
+export const getConnectionsStore = () => connectionsStore
 
 export const getReducer = () => reducer
 
@@ -55,7 +58,10 @@ const mainReducer = <S, A extends Action>
           ac.instruction === 'stop'
             ? ac
             : itemType === 'connector'
-              ? { newState: ac.newState, instruction: 'keep-going' }
+              ? (() => {
+                  addToConnectionsStore(mirror[key], ac.newState)
+                  return { newState: ac.newState, instruction: 'keep-going' }
+                })()
               : itemType === 'passiveConnector'
                 ? { newState: ac.newState, instruction: 'stop' }
                 : itemType === 'dormant-action'
@@ -76,6 +82,7 @@ const mainReducer = <S, A extends Action>
       , res => {
         const connector = mirror.connect || mirror.passiveConnect
         if (res.instruction === 'stop' && connector && subs[connector]) {
+          connectionsStore[connector] = res.newState
           setTimeout(
             () => subs[connector](res.newState),
             0
@@ -106,6 +113,10 @@ const itemIs =
       , (itemType: ItemType) =>
         itemType
     )
+
+const addToConnectionsStore = (key, state) => {
+  connectionsStore[key] = state
+}
 
 type ItemType = 'reducer' | 'passThrough' | 'connector' | 'passiveConnector' | 'active-action' | 'dormant-action' | 'other'
 const routeOnItem = (itemType: ItemType) =>

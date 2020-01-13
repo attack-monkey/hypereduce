@@ -3,6 +3,7 @@ import {
   connect as connectHR,
   disconnect as disconnectHR,
   dispatch as dispatchHR,
+  getConnectionsStore as getConnectionsStoreHR,
   getReducer as getReducerHR,
   getStore as getStoreHR,
   goto as gotoHR,
@@ -29,6 +30,7 @@ export const goto = gotoHR
 export const hypeReduce = hypeReduceHR
 export const getReducer = getReducerHR
 export const hypeReduceCore = hypeReduceCoreHR
+export const getConnectionsStore = getConnectionsStoreHR
 
 // common action-function / reducers
 export const ROUTE_CHANGE = ROUTE_CHANGEHR

@@ -11,6 +11,9 @@ export declare const goto: (path: any) => void;
 export declare const hypeReduce: (init: any, reduceObject: any) => void;
 export declare const getReducer: () => any;
 export declare const hypeReduceCore: <S, A extends Action>(state: S, action: A, pKey?: string | undefined) => (mirror: Record<string, any>) => any;
+export declare const getConnectionsStore: () => {
+    [key: string]: any;
+};
 export declare const ROUTE_CHANGE: <S>(state: S, action: import("./reducers/models/action.model").Action) => {
     segments: any;
     queryString: any;

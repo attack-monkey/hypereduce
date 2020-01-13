@@ -8,6 +8,7 @@ const getStore = require('./lib/index').getStore
 const connect = require('./lib/index').connect
 const disconnect = require('./lib/index').disconnect
 const getReducer = require('./lib/index').getReducer
+const getConnectionsStore = require('./lib/index').getConnectionsStore
 const hash = require('object-hash')
 
 const CONSTANT = state => state
@@ -20,7 +21,7 @@ const start = key => tick(() => next(key))
 
 let initialState, reducer, syncFn, asyncFn
 
-start('test1')
+start('test3')
 
 on('test1', () => {
 
@@ -134,5 +135,43 @@ on('test2', () => {
       }
     )
   } , 2000)
+
+  setTimeout(() => start('test3'), 3000)
+
+})
+
+// -----
+
+on('test3', () => {
+  console.log('TEST 3 - Using Connect to get current value')
+  console.log('=========================================')
+
+  initialState = {
+    greeting: 'hello'
+  }
+
+  reducer = {
+    greeting: {
+      connect: 'greeting',
+      REPLACE_GREETING: REPLACE
+    }
+  }
+
+  hypeReduce(initialState, reducer)
+
+  // Instead of using getStore() with long dot notation we can just use getConnectionsStore with the name of the connection
+  const greeting = () => getConnectionsStore().greeting
+
+  // Should say hello
+  console.log(greeting())
+
+  // Should connect up to changes and log on change
+  connect('greeting', newValue => console.log(newValue))
+
+  // This should trigger the change
+  dispatch({ type: 'REPLACE_GREETING', payload: 'sup' })
+
+  // This should log the updated value too
+  console.log(greeting())
 
 })
