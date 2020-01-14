@@ -201,7 +201,7 @@ Then in the corresponding component, `useConnect` to listen for actions on that 
 
 ```jsx
 
-import { useConnect } from 'hypereduce-useconnect'
+import { useConnect } from '...'
 import { getStore, dispatch } from 'hypereduce'
 
 const Text = () => {
@@ -221,8 +221,25 @@ const Text = () => {
 
 ```
 
-> Note that `useConnect` is a separate package - that you can get with `npm i hypereduce-useconnect`
-> And import with `import { useConnect } from 'hypereduce-useconnect'`
+### Create your reusable useConnect hook...
+
+```javascript
+
+import { connect, disconnect, getConnectionsStore } from 'hypereduce'
+import { useEffect, useState } from 'react'
+
+export const useConnect = (connectKey: string) => {
+  const [state, setState] = useState(getConnectionsStore()[connectKey])
+  useEffect(() =>
+    connect(connectKey, newValue => {
+      setState(newValue)
+      return disconnect(connectKey)
+    })
+  )
+  return state
+}
+
+```
 
 To wire up React + hypeReduce...
 
@@ -252,7 +269,7 @@ Upon initial load, the urlState is dispatched in a ROUTE_CHANGE action.
 
 Whenever urlState changes, it also triggers a ROUTE_CHANGE action.
 
-If the url was somesite.com/cats/123?filter=on&show=cute-cats then the action will look like...
+If the url is somesite.com/cats/123?filter=on&show=cute-cats then the action will look like...
 
 ```javascript
 
