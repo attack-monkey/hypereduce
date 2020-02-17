@@ -1,10 +1,11 @@
 {
   "name": "hypereduce",
-  "version": "1.3.1",
-  "description": "State management without all the boilerplate",
+  "version": "2.0.0",
+  "description": "Simple State & Data-flow Management for Browser & Node",
   "main": "lib/index.js",
   "scripts": {
     "test": "node test.js",
+    "test-direct": "ts-node test-direct.ts",
     "build": "tsc"
   },
   "repository": {
@@ -12,9 +13,10 @@
     "url": "git+https://github.com/attack-monkey/hypereduce.git"
   },
   "keywords": [
-    "redux",
+    "functional",
     "state",
-    "state",
+    "flow",
+    "action",
     "management",
     "reducer"
   ],

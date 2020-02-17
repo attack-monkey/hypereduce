@@ -1,530 +1,146 @@
-# hypeReduce
+# hypeReduce 2.0
 
-Simple Functional State Management
+**hypeReduce is a Simple yet powerful State & Data-flow Management Library for the Browser & Node**
 
-```
-npm i hypereduce
-```
+----
 
-```
-import { hypeReduce } from 'hypereduce'
-```
+## The Concept
+In hypeReduce everything is managed by dispatching either **flows** or **actions**, 
+both of which are just pure data objects that look like
 
-------------------------------------------------------------
-
-We believe that managing application state should be simple - yet powerful - and with all the safety features of functional reducer based state management.
-
-That's why we built hypeReduce.
-
-hypeReduce takes the initial state of an application along with a *dynamic state object* for managing state changes.
-
-Under the hood, hypeReduce is built on the same reducer based structure inspired by Redux and Elm.
-
-```javascript
-
-import { dispatch, getStore, hypeReduce } from 'hypereduce'
-
-// Set up your initial state
-const initialState = {
-  count: 0
-}
-
-// Add some basic reducer functions
-const INC = state => state + 1
-const DEC = state => state - 1
-
-// Make state dynamic
-const dynamicState = {
-  count: {
-    INC,
-    DEC
-  }
-}
-
-// Run hypeReduce
-hypeReduce(initialState, dynamicState)
-
-// Here's the initial state of count
-console.log(getStore().count) // 0
-
-dispatch({ type: 'INC' })
-
-// After dispatching the INC action, it's now 1
-console.log(getStore().count) // 1
-
-dispatch({ type: 'DEC' })
-
-// And now 0
-console.log(getStore().count) // 0
-
-```
-
-## Making Reducers reusable
-
-```javascript
-
-const dynamicState = {
-  count1: {
-    INC_COUNT_1: INC,
-    DEC_COUNT_1: DEC
-  },
-  count2: {
-    INC_COUNT_2: INC,
-    DEC_COUNT_2: DEC
-  }
-}
-
-```
-
-
-## $ Wildcards
-
-Need to respond to any action at a given node? - use $ and pass into a Reusable Reducer
-
-```javascript
-...
-field1: {
-  text: {
-    $: MY_REDUCER
-  }
-}
-...
-
-```
-
-Now any actions that make their way to the node with a $ will automatically trigger the corresponding reducer.
-
-## Passdowns
-
-When a Reducer isn't triggered at a higher node, use _ to pass the action down into child nodes.
-
-```javascript
-
-field1: {
-  DISABLE_FIELD,
-  ENABLE_FIELD,
-  _: {
-    text: {
-      CHANGE_TEXT,
-      REVERSE_TEXT
+    {
+      type: 'MY_FLOW',
+      payload: 'Do cool stuff'
     }
-  }
-}
 
-```
+**Actions** are responsible for safely updating application state.
 
-## Connect
+**Flows** are responsible for managing any async and impure complexity such as fetching data.
 
-We can emit changes at a given node with the 'connect annotation'.
+## An intro to State Management
+
+Let's say our application state looks like...
+
+    {
+      counter: 1
+    }
+
+In order for hypeReduce to manage it, we wrap it in the manageState function...
 
 ```javascript
 
-const reducer = {
-  field1: {
-    text: {
-      connect: 'field1Text',
-      CHANGE_TEXT
-    }
-  }
-}
-
-// ... somewhere else in your app
-
-import { connect } from 'hypereduce'
-
-connect('field1Text', emittedValue => {
-  console.log(emittedValue)
+manageState({
+  counter: 1
 })
 
 ```
 
-Now when an action is triggered on the above 'text' node, this will emit the new state to the `connect` listener.
-
-Unlike 'subscribe' in other frameworks, `connect` can only be registered once on a given node. 
-
-This is to reduce the panalty that exists in other frameworks when forgetting to unsubscribe from a subscribe (Such as memory leaks and multi-firing of functions).
-
-In saying that we provide an `disconnect` function still for unregistering a connect.
-
-```javascript
-disconnect('field1Text')
-```
-
-## getConnectionsStore vs getStore
-
-hypeReduce stores data in two ways:
-
-1. As one state object that you can always get using `getStore()`
-
-2. As a key / val map of connect annotations and the corresponding state at the given node. You can get this map with `getConnectionsStore()`
-
-For example:
+hypeReduce lets you turn static state into dynamic state by swapping out values for dynamic-nodes. 
+We'll swap the value of 1 for a dynamic-node...
 
 ```javascript
 
-const initialState = {
-  allCounts: {
-    count1: 22,
-    count2: 42
-  }
-}
-
-const dynamicState = ...
-hypeReduce(initialState, dynamicState)
-
-console.log(getStore().allCounts.count1) // 22
-
-// And since we've annotated count1, we can just reference the 'count1' key using getConnectionsStore()
-console.log(getConnectionsStore().count1) // 22
+manageState({
+  counter: d()
+})
 
 ```
 
-## React
-
-Using with React ? We hope so...  
-Take advantage of `useConnect` - a hypeReduce/react hook for managing connections
-
-First add a 'connect' annotation at a given node
+And give it an initial value of 1...
 
 ```javascript
 
-field1: {
-  text: {
-    connect: 'field1Text',
-    CHANGE_TEXT
-  }
-}
+manageState({
+  counter: d({
+    init: 1
+  })
+})
 
 ```
 
-Then in the corresponding component, `useConnect` to listen for actions on that node
-
-```jsx
-
-import { useConnect } from '...'
-import { getStore, dispatch } from 'hypereduce'
-
-const Text = () => {
-  const text = useConnect('field1Text')
-  return (
-    <div>
-      <h1>{ text }</h1>
-      <button onClick={ ev => dispatch(
-        {
-          type: 'CHANGE_TEXT',
-          payload: 'New text'
-        }
-      )}>push</button>
-    </div>
-  )
-}
-
-```
-
-### Create your reusable useConnect hook...
+And tell it which actions to respond to in order to produce new state
 
 ```javascript
 
-import { connect, disconnect, getConnectionsStore } from 'hypereduce'
-import { useEffect, useState } from 'react'
+// The following increment function takes in state and action and returns
+// either state + action.payload, or if action.payload isn't provided... state + 1
+const INC = (state, action) => state + (action.payload || 1)
 
-export const useConnect = (connectKey: string) => {
-  const [state, setState] = useState(getConnectionsStore()[connectKey])
-  useEffect(() =>
-    connect(connectKey, newValue => {
-      setState(newValue)
-      return disconnect(connectKey)
-    })
-  )
-  return state
-}
-
-```
-
-To wire up React + hypeReduce...
-
-```javascript
-
-import { initialState } from '...'
-import { dynamicState } from '...'
-import { hypeReduce } from 'hypereduce'
-import ReactDOM from 'react-dom'
-
-const mount = document.getElementById('app')
-
-hypeReduce(initialState, dynamicState)
-
-ReactDOM.render(
-  Entry(),
-  mount
-)
-
-```
-
-## urlState
-
-The state of the url is not forgotten in hypeReduce.
-
-Upon initial load, the urlState is dispatched in a ROUTE_CHANGE action.
-
-Whenever urlState changes, it also triggers a ROUTE_CHANGE action.
-
-If the url is somesite.com/cats/123?filter=on&show=cute-cats then the action will look like...
-
-```javascript
-
-{
-  type: 'ROUTE_CHANGE',
-  segments: [
-    '',
-    'cats',
-    '123'
-  ],
-  queryString: {
-    filter: 'on',
-    show: 'cute-cats'
-  }
-}
-
-```
-
-The url is spit into segments and any queryString parameters are exposed as a key / value map.
-
-# goto
-
-hypeReduce also provides the goto util which allows you to trigger a route change from a component.
-
-```javascript
-
-onClick={ () => goto('/cats') }
-
-```
-
-To create a link component, something like this should do the trick...
-
-```javascript
-
-const Link = ({ link, children }) =>
-  <button onCick={ () => goto(link) }>{children}</button>
-
-```
-
-## Routing
-
-Routing in hypeReduce is straight forward.
-
-Lets say we have two views set up, and an initial state...
-
-```javascript
-
-  const view1 = 'Hi Im view 1'
-  const view2 = 'Hi Im view 2'
-
-  initialState = {
-    view: {
-      view1
+// We can register the INC function on a dynamic-node.
+// Now the node is 'listening' for actions of type 'INC'.
+manageState({
+  counter: d({
+    init: 1,
+    actions: {
+      INC
     }
-  }
+  })
+})
 
 ```
 
-We can create a simple Router Reducer that just changes the state to the new view.
+To get the state of the counter out into our app somewhere, we first annotate it with **connections**...
 
 ```javascript
 
-  const CHANGE_VIEW = (state, action) => {
-    return (
-      action.view === 'view2'
-        ? { view2 }
-        : { view1 }
-    )
-  }
+const INC = (state, action) => state + (action.payload || 1)
 
-```
-
-The Dynamic State Object contains the CHANGE_VIEW Reducer that we created above.
-Then in the passdown, we cater for both view1 and view2.
-
-```javascript
-
-  dynamicState = {
-    view: {
-      CHANGE_VIEW,
-      _: {
-        view1: {
-          ...
-        },
-        view2: {
-          ...
-        }
-      }
+manageState({
+  counter: d({
+    connections: ['counter'],
+    init: 1,
+    actions: {
+      INC
     }
-  }
+  })
+})
 
 ```
 
-And to change views...
+And then register corresponding connections to it from within the app...
 
 ```javascript
 
-dispatch({ type: 'CHANGE_VIEW', view: 'view2' })
+const INC = (state, action) => state + (action.payload || 1)
 
-```
-
-If we wanted to based our routing on the ROUTE_CHANGE action we can modify to...
-
-```javascript
-
-  dynamicState = {
-    view: {
-      ROUTE_CHANGE: CHANGE_VIEW,
-      _: {
-        view1: {
-          ...
-        },
-        view2: {
-          ...
-        }
-      }
+manageState({
+  counter: d({
+    connections: ['counter'],
+    init: 1,
+    actions: {
+      INC
     }
-  }
-
-```
-
-Now it calls CHANGE_VIEW whenever the ROUTE_CHANGE action is dispatched.
-
-We can update our CHANGE_VIEW Reducer to use the urlState that is passed through on ROUTE_CHANGE.
-For example...
-
-```javascript
-
-  const CHANGE_VIEW = (state, action) => {
-    return (
-      action.segments[1] === 'view2'
-          ? { view2 }
-          : { view1 }
-    )
-  }
-
-```
-
-## Reusability
-
-hypeReduce is big on reusability.
-By thinking of various parts of state as data-structures, we can often use the same Reducer Functions.
-We provide a bunch of functions out-of-the-box to get you started.
-
-```javascript
-...
-field1: {
-  text: {
-    // REPLACE
-    REPLACE_FIELD1: REPLACE
-  }
-}
-...
-```
-
-```javascript
-
-// Replace text at field1
-dispatch({
-  type: 'REPLACE_FIELD1',
-  payload: 'new text'
+  })
 })
 
+connect('counter', _ => console.log(`Got a new value ${_}`))
+
 ```
 
-How about a collection of cats...
+Now we can dispatch actions and trigger the connection to fire with the updated value...
 
 ```javascript
 
-const initialState = 
-  cats: {
-    byId: {
-      cat1: {
-        name: 'kitty'
-      }
-    },
-    allIds: ['cat1']
-  }
+const INC = (state, action) => state + (action.payload || 1)
 
-const dynamicState = {
-  cats: {
-    SET_CAT: SET,
-    UPDATE_CAT: UPDATE,
-    DELETE_CAT: DELETE
-  }
-}
-
-// SET can be used to add new cats, or replace existing cats
-dispatch({
-  type: 'SET_CAT',
-  id: 'cat2',
-  payload: { name: 'garfield' }
+manageState({
+  counter: d({
+    connections: ['counter'],
+    init: 1,
+    actions: {
+      INC
+    }
+  })
 })
 
-// UPDATE allows you to specify a particular key of the collection item to update
+connect('counter', _ => console.log(`Got a new value ${_}`))
 
-dispatch({
-  type: 'UPDATE_CAT',
-  id: 'cat2',
-  key: 'name',
-  payload: 'garfield'
-})
-
-// DELETE allows you to well ... delete items
-
-dispatch({
-  type: 'DELETE_CAT',
-  id: 'cat2'
-})
+dispatch({ type: 'INC' }) // Got a new value 2
+dispatch({ type: 'INC', payload: 2 }) // Got a new value 4
 
 ```
 
-## Dispatching multiple actions
+## An intro to Flows
 
-Multiple Actions can be dispatched at once...
+TODO
 
-```javascript
-
-dispatch(
-  { type: 'ACTION1' },
-  { type: 'ACTION2'}
-)
-
-```
-
-All the actions will run in order before any state changes are emitted to `connect` listeners. 
-
-## Asynchronous Actions
-
-In hypeReduce - there should be NO asynchronous actions.
-Reducers should be pure functions that return a response synchronously.
-
-Asynchronous operations should be handled outside of hypeReduce.
-
-A common way to do this is to call a sequence that dispatches actions at intervals in an async operation...
-
-```javascript
-
-const sequence = () => {
-  dispatch({ type: 'START_ASYNC_OP' })
-  setTimeout(() => dispatch({ type: 'MIDDLE_ASYNC_OP' }), 1000)
-  setTimeout(() => dispatch({ type: 'FINISH_ASYNC_OP' }), 2000)
-}
-
-```
-
-It is also common to use `connect` to listen to a state change, that then triggers a dispatch...
-
-```javascript
-
-connect(
-  'some-node',
-  newValue => {
-    dispatch({ type: 'UPDATE_STATUS', status: 'done', value: newValue })
-  }
-)
-
-```

@@ -8,7 +8,6 @@ import {
   getStore as getStoreHR,
   goto as gotoHR,
   hypeReduce as hypeReduceHR,
-  hypeReduceCore as hypeReduceCoreHR,
   returnRouteObject as returnRouteObjectHR
 } from './fns/hype-reduce.fn'
 
@@ -29,7 +28,6 @@ export const getRoute = returnRouteObjectHR
 export const goto = gotoHR
 export const hypeReduce = hypeReduceHR
 export const getReducer = getReducerHR
-export const hypeReduceCore = hypeReduceCoreHR
 export const getConnectionsStore = getConnectionsStoreHR
 
 // common action-function / reducers
