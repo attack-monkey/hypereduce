@@ -25,7 +25,7 @@ export const run = () => {
   })
 
   // Connect a flow to the sequence
-  const RANDOMISER = (flow: FlowData<number>) => seq1(flow)
+  const RANDOMISER = seq1
 
   registerFlowHandlers({
     RANDOMISER
@@ -56,15 +56,16 @@ export const run = () => {
 
   type In = number
   type Out1 = number
+  type Out2 = number
   type OutFinal = string
   type MyPipe = [
     (x: In) => Out1,
-    (x: Out1) => OutFinal
+    (x: Out1) => Out2,
+    (x: Out2) => OutFinal
   ]
 
   const inc = (x: number) => x + 1
-  const myPipe = pipe<In, OutFinal, MyPipe>(inc, _ => display(`Got a new value ${_}`)
-)
+  const myPipe = pipe<In, OutFinal, MyPipe>(inc, inc, display)
 
   tick(() => {
     connect<number>(
