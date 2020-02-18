@@ -45,10 +45,21 @@ const emitToStateSubscriptions = <S>(state: S) =>
 
 // -- managing connections
 
+export const getConnections = (key: string) => connectionsStore[key]
+
 export const connect = <S>(key: string, fn: (s: S) => any) => {
   connectionsSubscriptions[key]
     ? display(`Connections must be unique ${key} has already been registered`)
     : connectionsSubscriptions[key] = fn
+}
+
+export const connectAndEmitCurrent = <S>(key: string, fn: (s: S) => any) => {
+  connectionsSubscriptions[key]
+    ? display(`Connections must be unique ${key} has already been registered`)
+    : (() => {
+      connectionsSubscriptions[key] = fn
+      connectionsSubscriptions[key](connectionsStore[key])
+    })()
 }
 
 export const disconnect = (key: string) => {

@@ -1,6 +1,6 @@
 # hypeReduce 2.0
 
-**hypeReduce is a Simple yet Powerful State-management & Data-flow Library for the Browser & Node**
+**hypeReduce is a simple yet powerful State-Management & Data-Flow Library for JS / TS - Browser & Node**
 
 ----
 
@@ -41,7 +41,18 @@ import { registerFlowHandlers, sequence } from 'hypereduce/fns/flow.api'// For a
 import { pipe } from 'hypereduce/fns/pipe.fn'
 import { display } from 'hypereduce/fns/display.fn'
 
+...
+
 ```
+
+You may not need the route-api - but it's there should you need.
+
+The state and flow api's are the main api's to be aware of.
+
+The stand-alone utilities help with writing more functional code, but 
+don't overlap too heavily with other libs like lo-dash and ramda.
+
+Functions tend to have a small description of what they are for - within the file.
 
 ## An intro to State Management
 
@@ -167,7 +178,7 @@ dispatch({ type: 'INC', payload: 2 }) // Got a new value 4
 
 ## $ Wildcards
 
-If you want a node to respond to any action that it recieves - use the `$` wildcard.
+If you want a node to respond to ALL actions that it recieves - use the `$` wildcard.
 
 ```javascript
 
@@ -302,6 +313,7 @@ any other pure functions.
 The simplest pure function is one that takes no arguments and always produces the same result.
 
 `const a = () => 3`
+
 These are basically constants, and for that reason we can also use constants in a pure function.
 
 We can also use pseudo-pure functions in place of pure functions to handle impurity. 
@@ -321,6 +333,12 @@ reacts to changes.
 
 Most other Reactive Functions in hypeReduce are used in the flow api, which is used to manage 
 impure and asynchronous functionality.
+
+> **CAVEAT**
+> There are a couple of impure / non-reactive functions to be aware of...
+> `getConnections` as part of the state api allows you to get the current state at a given node.
+> Since the value of the connection changes - this is not a pure function.
+> `die` is a utility for throwing an error. `die` returns a void and is therefore not pure.
 
 ## Flows for Async and Impure Data Management
 
