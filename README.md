@@ -26,9 +26,6 @@ npm i hypereduce
 
 ```
 
-hypeReduce is written in typescript - but can be used in js or ts 
-Can be required or imported.
-
 hypeReduce is broken into api's and standalone functions.
 
 To access the api's...
