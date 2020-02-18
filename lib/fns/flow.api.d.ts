@@ -29,12 +29,15 @@ interface FlowHandlerHashMap {
  *  step4
  * })
  */
+export declare const displayFlowAndMap: (flow: FlowData<any>, cb: <F extends FlowData<any>>(f: F) => any) => boolean;
 export declare const displayBodyAndMap: (flow: FlowData<any>, cb: <F extends FlowData<any>>(f: F) => any) => boolean;
-export declare const displayAndMap: (msg: string) => (flow: FlowData<any>, cb: <F extends FlowData<any>>(f: F) => any) => boolean;
+export declare const displayAndMap: (msg: any) => (flow: FlowData<any>, cb: <F extends FlowData<any>>(f: F) => any) => boolean;
 export declare const wait: (duration: number) => (flow: FlowData<any>, cb: <F extends FlowData<any>>(f: F) => any) => boolean;
-export declare const fromRandom: (f: (x: number) => any) => (flow: FlowData<any>, cb: any) => boolean;
+export declare const fromRandom: (flow: FlowData<any>, cb: any) => boolean;
+export declare const dispatchAsAction: (flow: FlowData<any>, cb: any) => boolean;
 declare type Map = (mapFn: <A extends any>(a: A) => any) => (flow: FlowData<any>, cb: <F extends FlowData<any>>(f: F) => any) => true;
 export declare const map: Map;
+export declare const updateType: (newType: string) => (flow: any, cb: any) => boolean;
 export declare const sequence: (stepHashMap: {
     [key: string]: Fn;
 }) => (flow: FlowData<any>) => void;

@@ -18,6 +18,36 @@ both of which are just pure data objects that look like
 
 **Flows** are responsible for managing any async and impure complexity such as fetching data.
 
+## Install
+
+```
+
+npm i hypereduce
+
+```
+
+hypeReduce is written in typescript - but can be used in js or ts 
+Can be required or imported.
+
+hypeReduce is broken into api's and standalone functions.
+
+To access the api's...
+
+```javascript
+
+// API's
+
+import { d, dispatch, manageState } from 'hypereduce/fns/state.api'     // For state management
+import { goto, manageRoutes } from 'hypereduce/fns/route.api'           // For route-handling
+import { registerFlowHandlers, sequence } from 'hypereduce/fns/flow.api'// For async and impure complexity
+
+// Stand alone utils
+
+import { pipe } from 'hypereduce/fns/pipe.fn'
+import { display } from 'hypereduce/fns/display.fn'
+
+```
+
 ## An intro to State Management
 
 Let's say our application state looks like...
