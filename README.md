@@ -28,8 +28,6 @@ npm i hypereduce
 
 hypeReduce is broken into api's and standalone functions.
 
-To access the api's...
-
 ```javascript
 
 // API's
