@@ -326,7 +326,7 @@ impure and asynchronous functionality.
 
 To manage asynchronous and impure activity - use flows.
 
-Register a flow...
+Register flow handlers...
 
 ```javascript
 
