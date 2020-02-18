@@ -7,9 +7,10 @@ export type SetAction<T, E> = Action & {
   payload: T
 }
 export const SET = <T, E>(collectionState: Collection<T>, action: Action): Collection<T> =>
-  apply(action as SetAction<T, E>, setAction =>
-    ({
-        byId: { ...collectionState.byId, [setAction.id]: setAction.payload },
-        allIds: [ ...collectionState.allIds, setAction.id]
-    })
-  )
+  apply(action as SetAction<T, E>)
+    (setAction =>
+      ({
+          byId: { ...collectionState.byId, [setAction.id]: setAction.payload },
+          allIds: [ ...collectionState.allIds, setAction.id]
+      })
+    )

@@ -126,3 +126,5 @@ export const dispatch = (action: Action) => {
   emitToStateSubscriptions(appState)
   return true
 }
+
+export const dispatchAction = dispatch // alias

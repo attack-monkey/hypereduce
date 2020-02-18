@@ -5,7 +5,7 @@
  *
  */
 
-import { dispatch } from './state.fns'
+import { dispatch } from './state.api'
 
 export const goto = path => {
   history.pushState(undefined, '', path)

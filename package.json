@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "node test.js",
-    "test-direct": "ts-node test-direct.ts",
+    "test-direct": "ts-node test-direct-tests",
     "build": "tsc"
   },
   "repository": {

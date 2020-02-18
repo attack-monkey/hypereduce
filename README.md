@@ -1,10 +1,11 @@
 # hypeReduce 2.0
 
-**hypeReduce is a Simple yet powerful State & Data-flow Management Library for the Browser & Node**
+**hypeReduce is a Simple yet Powerful State & Data-flow Management Library for the Browser & Node**
 
 ----
 
 ## The Concept
+
 In hypeReduce everything is managed by dispatching either **flows** or **actions**, 
 both of which are just pure data objects that look like
 
@@ -13,7 +14,7 @@ both of which are just pure data objects that look like
       payload: 'Do cool stuff'
     }
 
-**Actions** are responsible for safely updating application state.
+**Actions** are responsible for updating application state using pure functions.
 
 **Flows** are responsible for managing any async and impure complexity such as fetching data.
 
@@ -133,14 +134,11 @@ manageState({
   })
 })
 
-connect('counter', _ => console.log(`Got a new value ${_}`))
-
+connect('counter', _ => display(`Got a new value ${_}`)) // Got a new value 1
 dispatch({ type: 'INC' }) // Got a new value 2
 dispatch({ type: 'INC', payload: 2 }) // Got a new value 4
 
 ```
 
-## An intro to Flows
-
-TODO
+## More ...
 

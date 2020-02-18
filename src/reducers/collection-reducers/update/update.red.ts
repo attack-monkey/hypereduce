@@ -8,7 +8,7 @@ export type UpdateAction<K> = Action & {
   payload: K
 }
 export const UPDATE = <T, E, K>(collectionState: Collection<T>, action: Action): Collection<T> =>
-  apply(action as UpdateAction<K>, setAction =>
+  apply(action as UpdateAction<K>)(setAction =>
     ({
       byId: {
         ...collectionState.byId,
