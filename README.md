@@ -1,12 +1,12 @@
-# hypeReduce 2.0
+# hypeReduce 3.0
 
-**hypeReduce is a simple yet powerful State-Management & Data-Flow Library for JS / TS - Browser & Node**
+**hypeReduce is a simple yet powerful State-Management Library for JS / TS - Browser & Node**
 
 ----
 
 ## The Concept
 
-In hypeReduce everything is managed by dispatching either **flows** or **actions**, 
+In hypeReduce everything is managed by dispatching either **actions**, 
 both of which are just pure data objects that look like
 
     {
@@ -16,8 +16,6 @@ both of which are just pure data objects that look like
 
 **Actions** are responsible for updating application state **using pure functions**.
 
-**Flows** are responsible for managing any async and impure complexity such as fetching data.
-
 ## Install
 
 ```
@@ -26,7 +24,11 @@ npm i hypereduce
 
 ```
 
-hypeReduce is broken into api's and standalone functions.
+hypeReduce is broken into 2 main apis; state and route.
+
+The state.api manages state
+
+The route api manages url routes and interacts with the state.api
 
 ```javascript
 
@@ -34,25 +36,10 @@ hypeReduce is broken into api's and standalone functions.
 
 import { d, dispatch, manageState } from 'hypereduce/fns/state.api'     // For state management
 import { goto, manageRoutes } from 'hypereduce/fns/route.api'           // For route-handling
-import { registerFlowHandlers, sequence } from 'hypereduce/fns/flow.api'// For async and impure complexity
-
-// Stand alone utils
-
-import { pipe } from 'hypereduce/fns/pipe.fn'
-import { display } from 'hypereduce/fns/display.fn'
 
 ...
 
 ```
-
-You may not need the route-api - but it's there should you need.
-
-The state and flow api's are the main api's to be aware of.
-
-The stand-alone utilities help with writing more functional code, but 
-don't overlap too heavily with other libs like lo-dash and ramda.
-
-Functions tend to have a small description of what they are for - within the file.
 
 ## An intro to State Management
 
@@ -176,6 +163,34 @@ dispatch({ type: 'INC', payload: 2 }) // Got a new value 4
 
 ```
 
+At the moment though, if we had two nodes listening for `INC` then both nodes would increment.
+To make actions more targeted, use the node's name as an id that can be targeted...
+
+```javascript
+
+const INC =
+  (id) =>
+    (state, action) =>
+      id === action.payload.id
+        ? state + (action.payload.by || 1)
+        : state
+
+manageState({
+  counter: d({
+    connects: ['counter'],
+    init: 1,
+    actions: {
+      INC: INC('counter')
+    }
+  })
+})
+
+connect('counter', _ => display(`Got a new value ${_}`)) // Got a new value 1
+dispatch({ type: 'INC', payload: { id: 'counter' } }) // Got a new value 2
+dispatch({ type: 'INC', payload: { id: 'counter', by: 2 } }) // Got a new value 4
+
+```
+
 ## $ Wildcards
 
 If you want a node to respond to ALL actions that it recieves - use the `$` wildcard.
@@ -188,7 +203,7 @@ manageState({
   counter: d({
     connections: ['counter'],
     init: 1,
-    $: INC
+    $: INC('counter')
   })
 })
 
@@ -297,90 +312,79 @@ We can also specify the type that we expect the `connect`ion to get within the a
 
 ```
 
-## Purity
+## Connecting to React
 
-HypReduce applications are built from:
-1. Pure Functions and
-2. Reactive Functions
+In a state directory...
 
-**Pure functions** can only utilise the inputs provided to the function, along with 
-any other pure functions.
+```typescript
 
-- Given the same set of inputs Pure functions must always return the same result.
-- They can't return a void.
-- They cannot mutate anything, including the inputs.
 
-The simplest pure function is one that takes no arguments and always produces the same result.
+import { d, manageState, getConnections, connect, disconnect } from 'hypereduce/lib/fns/state.api'
+import { useState, useEffect } from 'react'
 
-`const a = () => 3`
+const INC =
+  (id: string) =>
+    (state: number, action: { type: string, payload: { id: string, by: number }}) =>
+      id === action.payload.id
+        ? state + (action.payload.by || 10)
+        : state
 
-These are basically constants, and for that reason we can also use constants in a pure function.
+// useConnect for REACT + HypeReduce
 
-We can also use pseudo-pure functions in place of pure functions to handle impurity. 
-The most common example is the `display` function in hypeReduce. It takes an input and 
-simply returns the input as a response. It satisfies all the requirements of being pure as far as 
-a function using it is concerned. However under the hood, it is actually logging to the console 
-which is an impure operation. We use `display` instead of `console.log` directly because `console.log`
-is definitely impure. For a start it doesn’t return a response - just a void. Secondly it reaches 
-outside of our function and into the console to print something. `display` adds an abstraction around that.
+export const useConnect = (connectKey: string) => {
+  const [state, setState] = useState(getConnections(connectKey))
+  useEffect(() =>
+    connect(connectKey, newValue => {
+      setState(newValue)
+      return disconnect(connectKey)
+    })
+  )
+  return state
+}
 
-Anything outside of this is handled using Reactive Functions.
+// HypeReduce State
 
-**Reactive Functions** allow values to be emitted into pure functions, therefore allowing pure functions 
-to do the heavy lifting. We've already seen the `connect` function that listens for a change in state 
-at a given node. Notice that it _emits_ values into a function. This is known as 'reactive' as it
-reacts to changes.
-
-Most other Reactive Functions in hypeReduce are used in the flow api, which is used to manage 
-impure and asynchronous functionality.
-
-> **CAVEAT**
-> There are a couple of impure / non-reactive functions to be aware of...
-> `getConnections` as part of the state api allows you to get the current state at a given node.
-> Since the value of the connection changes - this is not a pure function.
-> `die` is a utility for throwing an error. `die` returns a void and is therefore not pure.
-
-## Flows for Async and Impure Data Management
-
-To manage asynchronous and impure activity - use flows.
-
-Register flow handlers...
-
-```javascript
-
-registerFlowHandlers({ MY_FLOW })
-
-```
-
-Dispatch a flow...
-
-```javascript
-
-dispatchFlow({ type: 'MY_FLOW' })
-
-```
-
-Connect Flows to sequences...
-
-```javascript
-
-const seq1 = sequence({
-  fromRandom,                         // generate a random number and map it to the payload of the flow object
-  map: map(v => Math.floor(v * 10)),  // Turn it into an int between 0 - 10
-  updateType: updateType('INC'),      // Change the type of the flow object to INC
-  wait: wait('2000'),                 // Wait for 2 seconds
-  dispatchAsAction                    // dispatch the flow object as an action
+export const hypeReduce = () => manageState({
+  count: d<number>({
+    init: 3,
+    connects: [ 'count' ],
+    actions: {
+      INC: INC('count')
+    }
+  })
 })
 
-const MY_FLOW = seq1
+```
 
-// Now when we dispatch a flow of MY_FLOW, the flow object will be passed through to the
-// above sequence.
+Consider wrapping dispatches into simple messages...
+
+```typescript
+
+import { dispatch } from "hypereduce/lib/fns/state.api";
+
+export const INC_COUNT = () => dispatch({ type: 'INC', payload: { id: 'count' } })
 
 ```
 
-## Sequences
+Then in your components...
 
-Sequences are like an asynchronous pipe function. 
-Each function or step in the sequence takes the previous flow object.
-The flow doesn't move on until the step is complete.
+```typescript
+
+import { hypeReduce, useConnect } from '../state'
+import { INC_COUNT } from '../state/messages'
+
+hypeReduce()
+
+export default function Home() {
+  const count = useConnect('count') // This syncs to the HypeReduce 'connect' labelled 'count'
+  return <div id="app">
+    <h1>Counter</h1>
+    <h1>{count}</h1>
+    <button onClick={INC_COUNT}>
+      Click me
+    </button>
+  </div>
+}
+
+
+```
