@@ -6,8 +6,8 @@
 
 ## The Concept
 
-In hypeReduce everything is managed by dispatching either **actions**, 
-both of which are just pure data objects that look like
+In hypeReduce everything is managed by dispatching **actions**, 
+which are just pure data objects that look like
 
     {
       type: 'MY_FLOW',
