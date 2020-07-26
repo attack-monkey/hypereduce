@@ -1,6 +1,6 @@
 {
   "name": "hypereduce",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Simple State & Data-flow Management for Browser & Node",
   "main": "lib/index.js",
   "scripts": {
