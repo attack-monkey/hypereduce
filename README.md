@@ -10,7 +10,7 @@ In hypeReduce everything is managed by dispatching **actions**,
 which are just pure data objects that look like
 
     {
-      type: 'MY_FLOW',
+      type: 'MY_ACTION',
       payload: 'Do cool stuff'
     }
 
